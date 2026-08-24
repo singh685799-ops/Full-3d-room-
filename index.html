@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#121416" />
+    <title>Atrium — Room Studio</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23121416'/%3E%3Cpath d='M6 22V12l10-6 10 6v10H6z' fill='none' stroke='%23c9a36a' stroke-width='1.6'/%3E%3Cpath d='M13 22v-6h6v6' fill='none' stroke='%23c9a36a' stroke-width='1.4'/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="/src/styles/app.css" />
+  </head>
+  <body>
+    <div id="boot">
+      <div class="boot-mark">
+        <svg viewBox="0 0 64 64" width="56" height="56" aria-hidden="true">
+          <rect x="6" y="28" width="52" height="26" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="M6 28 L32 10 L58 28" fill="none" stroke="currentColor" stroke-width="2"/>
+          <rect x="26" y="38" width="12" height="16" fill="none" stroke="currentColor" stroke-width="2"/>
+        </svg>
+        <div class="boot-word">ATRIUM</div>
+        <div class="boot-sub">Interior Studio</div>
+      </div>
+      <div class="boot-bar"><div id="boot-fill"></div></div>
+      <div id="boot-msg">Initializing renderer…</div>
+    </div>
+
+    <div id="fatal" class="hidden">
+      <div class="fatal-card">
+        <h1>WebGL is unavailable</h1>
+        <p id="fatal-msg">This studio needs a browser with WebGL enabled.</p>
+        <button type="button" id="fatal-reload">Reload</button>
+      </div>
+    </div>
+
+    <canvas id="viewport" tabindex="0" aria-label="3D room viewport"></canvas>
+
+    <div id="app" class="hidden">
+      <header id="topbar">
+        <div class="brand" title="Atrium Interior Studio">
+          <svg viewBox="0 0 32 32" width="22" height="22" aria-hidden="true">
+            <path d="M4 22V13l12-8 12 8v9H4z" fill="none" stroke="currentColor" stroke-width="1.7"/>
+            <path d="M13 22v-6h6v6" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
+          <span>ATRIUM</span>
+        </div>
+        <div class="title-wrap">
+          <input id="room-name" type="text" maxlength="48" spellcheck="false" value="North Bedroom" aria-label="Room name" />
+        </div>
+        <div class="top-actions">
+          <button type="button" class="icon-btn" id="btn-undo" title="Undo (Ctrl+Z)">
+            <svg viewBox="0 0 24 24" width="16" height="16"><path d="M9 7L4 12l5 5M4 12h10a6 6 0 010 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <button type="button" class="icon-btn" id="btn-redo" title="Redo (Ctrl+Y)">
+            <svg viewBox="0 0 24 24" width="16" height="16"><path d="M15 7l5 5-5 5M20 12H10a6 6 0 000 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <span class="sep"></span>
+          <button type="button" class="text-btn" id="btn-new" title="New room">New</button>
+          <button type="button" class="text-btn" id="btn-save" title="Save (Ctrl+S)">Save</button>
+          <button type="button" class="text-btn" id="btn-load" title="Load rooms">Load</button>
+          <button type="button" class="text-btn" id="btn-reset" title="Reset to default layout">Reset</button>
+          <span class="sep"></span>
+          <button type="button" class="icon-btn" id="btn-settings" title="Settings">
+            <svg viewBox="0 0 24 24" width="16" height="16"><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          </button>
+          <button type="button" class="icon-btn mobile-only" id="btn-lib-toggle" title="Library">
+            <svg viewBox="0 0 24 24" width="16" height="16"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          </button>
+          <button type="button" class="icon-btn mobile-only" id="btn-insp-toggle" title="Inspector">
+            <svg viewBox="0 0 24 24" width="16" height="16"><rect x="5" y="4" width="14" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <aside id="leftbar" class="sidebar">
+        <div class="side-tabs">
+          <button type="button" class="side-tab active" data-tab="library">Library</button>
+          <button type="button" class="side-tab" data-tab="scene">Scene</button>
+        </div>
+        <div id="tab-library" class="side-pane">
+          <div id="lib-cats" class="cat-row"></div>
+          <div id="lib-items" class="lib-grid"></div>
+          <p class="hint">Click an item, then click in the room to place it. Drag is also supported on desktop.</p>
+        </div>
+        <div id="tab-scene" class="side-pane hidden">
+          <div id="scene-list" class="scene-list"></div>
+        </div>
+      </aside>
+
+      <aside id="rightbar" class="sidebar">
+        <div class="side-tabs">
+          <button type="button" class="side-tab active" data-rtab="inspect">Inspect</button>
+          <button type="button" class="side-tab" data-rtab="room">Room</button>
+          <button type="button" class="side-tab" data-rtab="lights">Lights</button>
+        </div>
+        <div id="rtab-inspect" class="side-pane">
+          <div id="inspector-empty" class="empty-note">Select an object to inspect it.</div>
+          <div id="inspector" class="hidden">
+            <label class="field">
+              <span>Name</span>
+              <input id="ins-name" type="text" maxlength="40" />
+            </label>
+            <div class="field-row">
+              <span class="lbl">Position</span>
+              <div class="xyz">
+                <label>X <input id="ins-px" type="number" step="0.05" /></label>
+                <label>Y <input id="ins-py" type="number" step="0.05" /></label>
+                <label>Z <input id="ins-pz" type="number" step="0.05" /></label>
+              </div>
+            </div>
+            <div class="field-row">
+              <span class="lbl">Rotation</span>
+              <div class="xyz">
+                <label>X <input id="ins-rx" type="number" step="1" /></label>
+                <label>Y <input id="ins-ry" type="number" step="1" /></label>
+                <label>Z <input id="ins-rz" type="number" step="1" /></label>
+              </div>
+            </div>
+            <div class="field-row">
+              <span class="lbl">Scale</span>
+              <div class="xyz">
+                <label>X <input id="ins-sx" type="number" step="0.05" min="0.3" max="3" /></label>
+                <label>Y <input id="ins-sy" type="number" step="0.05" min="0.3" max="3" /></label>
+                <label>Z <input id="ins-sz" type="number" step="0.05" min="0.3" max="3" /></label>
+              </div>
+            </div>
+            <label class="field">
+              <span>Material</span>
+              <select id="ins-mat"></select>
+            </label>
+            <label class="field">
+              <span>Color</span>
+              <input id="ins-color" type="color" />
+            </label>
+            <label class="check">
+              <input id="ins-vis" type="checkbox" checked />
+              <span>Visible</span>
+            </label>
+            <label class="check">
+              <input id="ins-lock" type="checkbox" />
+              <span>Locked</span>
+            </label>
+            <div class="btn-row">
+              <button type="button" class="text-btn" id="ins-dup">Duplicate</button>
+              <button type="button" class="text-btn" id="ins-reset">Reset</button>
+              <button type="button" class="text-btn danger" id="ins-del">Delete</button>
+            </div>
+          </div>
+        </div>
+        <div id="rtab-room" class="side-pane hidden">
+          <h3>Walls</h3>
+          <label class="field"><span>Material</span><select id="wall-mat"></select></label>
+          <label class="field"><span>Color</span><input id="wall-color" type="color" /></label>
+          <h3>Floor</h3>
+          <label class="field"><span>Material</span><select id="floor-mat"></select></label>
+          <label class="field"><span>Color</span><input id="floor-color" type="color" /></label>
+          <h3>Ceiling</h3>
+          <label class="field"><span>Color</span><input id="ceil-color" type="color" /></label>
+        </div>
+        <div id="rtab-lights" class="side-pane hidden">
+          <div class="btn-row">
+            <button type="button" class="text-btn" id="btn-day">Day</button>
+            <button type="button" class="text-btn" id="btn-night">Night</button>
+          </div>
+          <label class="field">
+            <span>Time <em id="time-label">14:00</em></span>
+            <input id="time-slider" type="range" min="0" max="1439" value="840" />
+          </label>
+          <label class="field">
+            <span>Exposure <em id="exp-label">1.00</em></span>
+            <input id="exposure" type="range" min="30" max="220" value="100" />
+          </label>
+          <div id="light-controls"></div>
+        </div>
+      </aside>
+
+      <div id="hud">
+        <div id="minimap-wrap">
+          <canvas id="minimap" width="168" height="128"></canvas>
+          <span>MAP</span>
+        </div>
+        <div id="crosshair" class="hidden">+</div>
+        <div id="hint"></div>
+        <div id="place-banner" class="hidden"></div>
+      </div>
+
+      <div id="perf">
+        <div><b id="perf-fps">--</b> fps</div>
+        <div id="perf-info"></div>
+      </div>
+
+      <footer id="bottombar">
+        <div class="cam-modes" role="toolbar" aria-label="Camera modes">
+          <button type="button" class="chip active" data-cam="orbit">Orbit</button>
+          <button type="button" class="chip" data-cam="fps">Walk</button>
+          <button type="button" class="chip" data-cam="top">Top</button>
+          <button type="button" class="chip" data-cam="front">Front</button>
+          <button type="button" class="chip" data-cam="side">Side</button>
+          <button type="button" class="chip" data-cam="blueprint">Blueprint</button>
+          <button type="button" class="chip" id="btn-cam-reset">Reset cam</button>
+        </div>
+        <div class="edit-tools">
+          <button type="button" class="chip" data-gizmo="translate" title="Move (W)">Move</button>
+          <button type="button" class="chip" data-gizmo="rotate" title="Rotate (E)">Rotate</button>
+          <button type="button" class="chip" data-gizmo="scale" title="Scale (R)">Scale</button>
+          <label class="chip check-chip"><input id="tog-grid" type="checkbox" checked /> Grid</label>
+          <label class="chip check-chip"><input id="tog-snap" type="checkbox" checked /> Snap</label>
+          <label class="chip slim">
+            Grid
+            <select id="grid-size">
+              <option value="0.1">0.1</option>
+              <option value="0.25" selected>0.25</option>
+              <option value="0.5">0.5</option>
+              <option value="1">1.0</option>
+            </select>
+          </label>
+          <label class="chip slim">
+            Angle
+            <select id="rot-snap">
+              <option value="15">15°</option>
+              <option value="30">30°</option>
+              <option value="45" selected>45°</option>
+              <option value="90">90°</option>
+            </select>
+          </label>
+        </div>
+        <div id="status">
+          <span id="status-mode">Orbit</span>
+          <span id="status-objs">0 objects</span>
+        </div>
+      </footer>
+
+      <div id="joystick" class="hidden">
+        <div class="joy-base"><div class="joy-knob"></div></div>
+      </div>
+      <div id="look-hint" class="hidden">Drag to look · joystick to walk</div>
+    </div>
+
+    <div id="overlay" class="hidden"></div>
+
+    <div id="modal-root" class="hidden">
+      <div class="modal" id="modal-saves">
+        <header>
+          <h2>Saved rooms</h2>
+          <button type="button" class="icon-btn modal-close" data-close>×</button>
+        </header>
+        <div id="save-list"></div>
+      </div>
+      <div class="modal hidden" id="modal-settings">
+        <header>
+          <h2>Settings</h2>
+          <button type="button" class="icon-btn modal-close" data-close>×</button>
+        </header>
+        <label class="field"><span>Mouse look sensitivity</span><input id="set-sens" type="range" min="4" max="40" value="14" /></label>
+        <label class="field"><span>Walk FOV</span><input id="set-fov" type="range" min="55" max="95" value="72" /></label>
+        <label class="field"><span>Shadow quality</span>
+          <select id="set-shadows">
+            <option value="off">Off</option>
+            <option value="med" selected>Medium</option>
+            <option value="high">High</option>
+          </select>
+        </label>
+        <label class="check"><input id="set-ao" type="checkbox" /><span>Ambient occlusion (if supported)</span></label>
+        <div class="keys">
+          <h3>Keys</h3>
+          <p>W A S D — walk · Mouse — look · W/E/R — move/rotate/scale</p>
+          <p>F — focus · Del — delete · Ctrl+D — duplicate · Esc — cancel</p>
+          <p>1–6 — cameras · L — toggle selected lamp · Double-click — use object</p>
+        </div>
+      </div>
+      <div class="modal hidden" id="modal-computer">
+        <header>
+          <h2>Atrium OS</h2>
+          <button type="button" class="icon-btn modal-close" data-close>×</button>
+        </header>
+        <div class="os">
+          <div class="os-dock">
+            <button type="button" data-os="notes">Notes</button>
+            <button type="button" data-os="lights">Lights</button>
+            <button type="button" data-os="info">Room</button>
+          </div>
+          <div id="os-body" class="os-body"></div>
+        </div>
+      </div>
+      <div class="modal hidden" id="modal-book">
+        <header>
+          <h2 id="book-title">Book</h2>
+          <button type="button" class="icon-btn modal-close" data-close>×</button>
+        </header>
+        <p id="book-author" class="muted"></p>
+        <p id="book-blurb"></p>
+      </div>
+      <div class="modal slim hidden" id="modal-clock">
+        <header>
+          <h2>Wall clock</h2>
+          <button type="button" class="icon-btn modal-close" data-close>×</button>
+        </header>
+        <div id="clock-big">14:00</div>
+        <p class="muted">Simulated room time. Drag the time slider to change it.</p>
+      </div>
+    </div>
+
+    <div id="toasts"></div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
